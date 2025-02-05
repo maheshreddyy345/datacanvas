@@ -1,130 +1,97 @@
-# Getting Started with Create React App
+# 📊 Interactive Chart Generator with AI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern web application that converts natural language descriptions into beautiful, animated charts using AI. Built with React, Node.js, and powered by GPT-4.
 
-## Available Scripts
+![Chart Demo](demo.gif)
 
-In the project directory, you can run:
+## ✨ Features
 
-### `npm start`
+- **Natural Language Processing**: Simply describe your data in plain English
+- **Multiple Chart Types**: 
+  - 📊 Bar Charts
+  - 📈 Line Charts
+  - 🔵 Area Charts
+  - 🥧 Pie Charts
+- **Smart Data Extraction**: Automatically identifies numbers, percentages, and categories
+- **Beautiful Animations**: Smooth, customizable chart animations
+- **Video Export**: Record and download chart animations
+- **Modern UI**: Clean, responsive design using Material-UI
+- **Real-time Updates**: Instant chart preview as you type
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🚀 Quick Start
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-
-## Deployment Options
-
-### Heroku
-
-1. Install Heroku CLI
-2. Login to Heroku:
+1. **Clone the repository**
    ```bash
-   heroku login
+   git clone https://github.com/maheshreddyy345/datacanvas.git
+   cd datacanvas
    ```
 
-3. Create a new Heroku app:
+2. **Install dependencies**
    ```bash
-   heroku create your-app-name
+   npm install
    ```
 
-4. Set environment variables:
+3. **Set up environment variables**
+   - Create a `.env` file in the root directory
+   - Add your OpenAI API key:
+     ```
+     OPENAI_API_KEY=your_api_key_here
+     ```
+
+4. **Start the development server**
    ```bash
-   heroku config:set OPENAI_API_KEY=your_api_key_here
+   npm run dev
    ```
 
-5. Deploy:
-   ```bash
-   git push heroku main
+5. **Open in browser**
+   - Navigate to `http://localhost:3000`
+
+## 💡 Usage Examples
+
+1. **Simple Percentage Distribution**
+   ```
+   "Market share: 40% in North America, 35% in Europe, 25% in Asia"
    ```
 
-### Vercel
-
-1. Install Vercel CLI:
-   ```bash
-   npm install -g vercel
+2. **Sales Data with Multiple Categories**
+   ```
+   "A large order was placed on Tuesday for 15 regular items at $10 each, 5 premium items at $25 each, and 2 deluxe items at $50 each, resulting in a total sale of $425."
    ```
 
-2. Deploy:
-   ```bash
-   vercel
+3. **Time Series Data**
+   ```
+   "Sales growth: Q1: $100K, Q2: $150K, Q3: $200K, Q4: $250K"
    ```
 
-3. Set environment variables in the Vercel dashboard.
+## 🛠️ Tech Stack
 
-### Docker
+- **Frontend**:
+  - React.js
+  - Material-UI
+  - ECharts
+  - RecordRTC
 
-1. Build the Docker image:
-   ```bash
-   docker build -t chart-generator .
-   ```
+- **Backend**:
+  - Node.js
+  - Express
+  - OpenAI API
 
-2. Run the container:
-   ```bash
-   docker run -p 3000:3000 -e OPENAI_API_KEY=your_api_key_here chart-generator
-   ```
+## 📝 Notes
 
-## Environment Variables
+- The application requires a valid OpenAI API key to function
+- Chart recording works best in modern browsers
+- For optimal performance, use Chrome or Firefox
 
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `PORT`: Port number for the server (default: 3000)
+## 🤝 Contributing
 
-## License
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-MIT
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built using [Windsurf](https://www.codeium.com/windsurf), the world's first agentic IDE
+- Powered by [OpenAI's GPT-4](https://openai.com/gpt-4)
+- Charts rendered using [Apache ECharts](https://echarts.apache.org)
