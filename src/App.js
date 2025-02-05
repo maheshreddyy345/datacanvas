@@ -123,7 +123,6 @@ function App() {
   const [selectedPalette, setSelectedPalette] = useState('purple');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingProgress, setRecordingProgress] = useState(0);
-  const [animationDuration, setAnimationDuration] = useState(1000);
   const [animationType, setAnimationType] = useState('easeOut');
   const chartRef = useRef(null);
   const echartsInstance = useRef(null);
@@ -184,7 +183,7 @@ function App() {
       let startTime = null;
       const animate = (timestamp) => {
         if (!startTime) startTime = timestamp;
-        const progress = Math.min((timestamp - startTime) / animationDuration, 1);
+        const progress = Math.min((timestamp - startTime) / 2000, 1);
         
         try {
           const easedProgress = getEasing(animationType, progress);
@@ -207,7 +206,7 @@ function App() {
       
       requestAnimationFrame(animate);
     }
-  }, [chartData, animationDuration, animationType]);
+  }, [chartData, animationType]);
 
   const handleDataUpdate = async () => {
     if (!prompt.trim()) {
@@ -266,7 +265,7 @@ function App() {
     const baseOption = {
       backgroundColor: 'transparent',
       animation: true,
-      animationDuration: animationDuration,
+      animationDuration: 2000,
       animationEasing: animationType === 'linear' ? 'linear' : 'cubicOut',
       grid: {
         top: '10%',
@@ -477,213 +476,95 @@ function App() {
       setIsRecording(true);
       setError(null);
 
-      // Get the canvas element from ECharts
-      const chartElement = document.querySelector('.echarts-for-react');
-      if (!chartElement) {
-        throw new Error('Chart element not found');
-      }
-
-      const canvas = chartElement.getElementsByTagName('canvas')[0];
+      // Get the chart canvas
+      const canvas = document.querySelector('.echarts-for-react canvas');
       if (!canvas) {
-        throw new Error('Canvas element not found');
+        throw new Error('Chart canvas not found');
       }
 
-      // Create a media stream from the canvas
-      const stream = canvas.captureStream(30); // 30 FPS for better compatibility
-
-      // Try different codec options
-      let options = {
+      // Create stream with lower settings for better compatibility
+      const stream = canvas.captureStream(30);
+      
+      // Create recorder with basic settings
+      const recorder = new RecordRTC(stream, {
+        type: 'video',
         mimeType: 'video/webm',
-        videoBitsPerSecond: 2500000 // 2.5 Mbps for better compatibility
-      };
+        frameRate: 30,
+        quality: 90,
+        width: canvas.width,
+        height: canvas.height
+      });
 
-      // Test supported mime types
-      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
-        options.mimeType = 'video/webm;codecs=vp8';
-      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-        options.mimeType = 'video/webm;codecs=vp9';
-      } else if (MediaRecorder.isTypeSupported('video/webm')) {
-        options.mimeType = 'video/webm';
-      }
-
-      console.log('Using MIME type:', options.mimeType);
-
-      const mediaRecorder = new MediaRecorder(stream, options);
-      const chunks = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) {
-          chunks.push(e.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        try {
-          const blob = new Blob(chunks, { type: options.mimeType });
-          console.log('Recording size:', blob.size, 'bytes');
-          
-          // Verify blob is valid
-          if (blob.size === 0) {
-            throw new Error('Recording is empty');
-          }
-
-          // Create a download link
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-          a.download = `chart-animation-${timestamp}.webm`;
-          a.href = url;
-          a.style.display = 'none';
-          
-          // Trigger download
-          document.body.appendChild(a);
-          a.click();
-          
-          // Cleanup
-          setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          }, 100);
-
-          setIsRecording(false);
-        } catch (err) {
-          console.error('Error saving recording:', err);
-          setError('Failed to save recording: ' + err.message);
-          setIsRecording(false);
-        }
-      };
-
-      // Reset chart
+      // Reset animation
       setCurrentData([]);
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Start recording in smaller chunks
-      mediaRecorder.start(1000); // Record in 1-second chunks
-      console.log('Started recording');
-
-      // Wait for a frame
+      
+      // Start recording
+      recorder.startRecording();
+      
+      // Wait a frame then start animation
       await new Promise(resolve => requestAnimationFrame(resolve));
-
-      // Set data to trigger animation
       setCurrentData(chartData);
-      console.log('Animation started');
 
-      // Record for animation duration plus buffer
-      const recordingDuration = animationDuration + 1000;
-      await new Promise(resolve => setTimeout(resolve, recordingDuration));
+      // Record for 2 seconds
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Stop recording if still active
-      if (mediaRecorder.state === 'recording') {
-        console.log('Stopping recording');
-        mediaRecorder.stop();
-      }
+      // Stop recording
+      recorder.stopRecording(() => {
+        const blob = recorder.getBlob();
+        
+        // Create and click download link
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'chart-animation.webm';
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          stream.getTracks().forEach(track => track.stop());
+          recorder.destroy();
+          setIsRecording(false);
+        }, 100);
+      });
 
     } catch (err) {
       console.error('Recording error:', err);
-      setError('Failed to start recording: ' + err.message);
+      setError(`Recording failed: ${err.message}`);
       setIsRecording(false);
     }
   };
 
   const handleDownload = async () => {
     try {
-      if (isRecording) {
-        return; // Don't allow multiple recordings at once
-      }
       await startRecording();
-    } catch (error) {
-      console.error('Download error:', error);
-      setError('Failed to download animation: ' + error.message);
+    } catch (err) {
+      console.error('Download error:', err);
+      setError(`Download failed: ${err.message}`);
     }
   };
 
+  // Update animation duration to match recording time
   useEffect(() => {
-    const styles = `
-      .chart-container {
-        background-color: #1a1a1a;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .chart-placeholder {
-        width: 100%;
-        height: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #1a1a1a;
-        border-radius: 8px;
-      }
-
-      .no-data-message {
-        color: #fff;
-        font-size: 16px;
-        opacity: 0.7;
-      }
-
-      .download-button {
-        margin-top: 20px;
-        padding: 10px 20px;
-        background: linear-gradient(45deg, #2196f3, #21cbf3);
-        border: none;
-        border-radius: 4px;
-        color: white;
-        font-size: 14px;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
-
-      .download-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      }
-
-      .download-button:disabled {
-        background: #666;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-        opacity: 0.7;
-      }
-
-      .download-button svg {
-        width: 18px;
-        height: 18px;
-      }
-
-      @keyframes recording-pulse {
-        0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); }
-        70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
-      }
-
-      .recording-indicator {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 12px;
-        height: 12px;
-        background-color: #ff0000;
-        border-radius: 50%;
-        animation: recording-pulse 2s infinite;
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+      .echarts-for-react canvas {
+        animation: none !important;
       }
     `;
-
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = styles;
     document.head.appendChild(styleSheet);
+    return () => document.head.removeChild(styleSheet);
   }, []);
 
+  // Set fixed animation duration
+  const [animationDuration] = useState(2000); // Fixed 2 second animation
+
   useEffect(() => {
-    console.log('Animation duration:', animationDuration);
-  }, [animationDuration]);
+    console.log('Animation duration:', 2000);
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>
@@ -815,8 +696,8 @@ function App() {
               <FormControl sx={{ minWidth: 120 }}>
                 <InputLabel>Duration</InputLabel>
                 <Select
-                  value={animationDuration}
-                  onChange={(e) => setAnimationDuration(e.target.value)}
+                  value={2000}
+                  onChange={(e) => {}}
                   label="Duration"
                 >
                   <MenuItem value={500}>Fast (0.5s)</MenuItem>
